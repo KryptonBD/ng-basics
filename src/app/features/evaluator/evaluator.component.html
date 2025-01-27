@@ -1,0 +1,53 @@
+<div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+  <form [formGroup]="form" (ngSubmit)="submitForm()" class="space-y-4">
+    <div>
+      <label class="block text-red-600">Red</label>
+      <input
+        type="number"
+        formControlName="red"
+        class="w-full p-2 border rounded-lg"
+        min="3"
+        max="15"
+      />
+    </div>
+    <div>
+      <label class="block text-green-600">Green</label>
+      <input
+        type="number"
+        formControlName="green"
+        class="w-full p-2 border rounded-lg"
+        min="3"
+        max="15"
+      />
+    </div>
+    <div>
+      <label class="block text-blue-600">Blue</label>
+      <input
+        type="number"
+        formControlName="blue"
+        class="w-full p-2 border rounded-lg"
+        min="3"
+        max="15"
+      />
+    </div>
+    <button
+      type="submit"
+      [disabled]="!form.valid || store.isBusy()"
+      class="w-full p-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
+    >
+      Submit
+    </button>
+  </form>
+
+  @if (evaluatorStore.result()) {
+  <div
+    [ngClass]="{
+      'text-yellow-500': !evaluatorStore.isEven(),
+      'text-orange-500': evaluatorStore.isEven()
+    }"
+    class="mt-4 text-2xl font-bold text-center"
+  >
+    {{ evaluatorStore.result() }}
+  </div>
+  }
+</div>

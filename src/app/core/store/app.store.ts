@@ -1,4 +1,4 @@
-import { computed } from '@angular/core';
+import { computed, inject } from '@angular/core';
 import {
   patchState,
   signalStore,
@@ -6,6 +6,9 @@ import {
   withMethods,
   withState,
 } from '@ngrx/signals';
+import { EvaluatorService } from '../services/evaluation.service';
+import { pipe, switchMap, tap } from 'rxjs';
+import { rxMethod } from '@ngrx/signals/rxjs-interop';
 
 export interface BustState {
   count: number;
@@ -40,4 +43,46 @@ export const AppState = signalStore(
   withComputed(({ count }) => ({
     isBusy: computed(() => count() > 0),
   }))
+);
+
+export interface EvaluatorState {
+  result: string | null;
+  isEven: boolean;
+}
+
+const initialEvaluatorState: EvaluatorState = {
+  result: null,
+  isEven: false,
+};
+
+export const EvaluatorStore = signalStore(
+  { providedIn: 'root' },
+  withState(initialEvaluatorState),
+  withMethods(
+    (
+      store,
+      evaluatorService = inject(EvaluatorService),
+      appState = inject(AppState)
+    ) => ({
+      processForm: rxMethod<Record<string, number>>(
+        pipe(
+          tap(() => appState.increaseBusy()),
+          switchMap((values) => {
+            return Promise.all([
+              evaluatorService.concatenate(values).toPromise(),
+              evaluatorService.parity(values).toPromise(),
+            ]);
+          }),
+          tap(([result, isEven]) => {
+            patchState(store, { result, isEven });
+            appState.decreaseBusy();
+          })
+        )
+      ),
+
+      reset() {
+        patchState(store, initialEvaluatorState);
+      },
+    })
+  )
 );
